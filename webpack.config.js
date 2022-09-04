@@ -43,8 +43,6 @@ module.exports = (env) => {
         },
         output: {
             filename: `index${outputFileSuffix}.js`,
-            libraryTarget: 'umd',
-            umdNamedDefine: true,
             path: outputPath,
         },
         stats: 'minimal',

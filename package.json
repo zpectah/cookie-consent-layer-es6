@@ -5,6 +5,7 @@
   "main": "index.js",
   "author": "Tomas Sychra | zpecter.com",
   "license": "MIT",
+  "repository": "https://github.com/zpectah/cookie-consent-layer-es6",
   "scripts": {
     "start": "webpack --env env=development --env watch",
     "dev": "webpack --env env=development",

@@ -11,7 +11,7 @@ Inspiration for me was Orestbida's https://www.npmjs.com/package/vanilla-cookiec
 - Customization & callbacks
 
 ## Implementation
-- GitHub repo `...`
+- GitHub repo `https://github.com/zpectah/cookie-consent-layer-es6`
 - CDN styles (local server) ``http://cdn.zpecter.com/cookie-consent-layer-es6/latest/index[.min].css``
 - CDN scripts (local server) ``http://cdn.zpecter.com/cookie-consent-layer-es6/latest/index[.min].js``
 
