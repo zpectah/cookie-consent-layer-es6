@@ -51,31 +51,60 @@ ccl_class.init(); // Returns CookieConsentLayerProps
 ## Options
 Option | Type | Default | Description
 --- | --- | --- | ---
-`option` | `type` | `default` | ...
+`meta` | `Object` | | Options meta object
+`meta.name` | `string` | `'CookieConsentLayer'` | Will be used in local purpose
+`meta.revision` | `number` | `0` | Instance revision, if value is changed and user have already accepted, banner will trigger again
+`meta.debug` | `boolean` | `false` | If true, it wil display console logs with events for easier debugging
+`meta.delay` | `number` | `0` | When set, banner will show after this value in ms
+`meta.classPrefix` | `string` | `'ccl-'` | Global class prefix used also in styles. Be sure you know, why changing this value
+`meta.hideFromBots` | `boolean` | `false` | If you want to hide service from bot/crawler/webdriver. If set to true and service detects one of bot, will be not initialized
+`meta.ltr` | `boolean` | `false` | If you want to keep text right-to-left, set to false
+`cookie` | `Object` | | Cookie options object
+`cookie.name` | `string` | `'CC_LAYER'` | Name of a cookie which be save in browser
+`cookie.domain` | `string` | `'.your-domain.some'` | Cookie domain
+`cookie.expiration` | `number` | `365` | Expiration of consent, if expires, banner will be showed again
+`cookie.path` | `string` | `'/'` | Cookie path
+`cookie.sameSite` | `string` | `'Lax'` | Cookie on same site
+`cookie.rfc` | `boolean` | `false` | Use RFC format of cookie, otherwise is JSON as string
+`scripts` | `type` | `default` | ...
+`consent` | `type` | `default` | ...
+`banner` | `type` | `default` | ...
+`dialog` | `type` | `default` | ...
+`language` | `type` | `default` | ...
+`locales` | `type` | `default` | ...
+`onAcceptAll` | `(cookie: Cookie, preferences: Preferences) => void` | | When user clicks on 'Accept all' button
+`onAcceptNecessary` | `(cookie: Cookie, preferences: Preferences) => void` | | When user clicks on 'Accept necessary' or 'Decline' button
+`onChange` | `(cookie: Cookie, preferences: Preferences) => void` | | When user click on 'Save' button in dialog
+`onInit` | `(state: CookieConsentLayerState) => void` | | Triggers only when cookie is found on page load
+`onToggle` | `(preferences: Preferences) => void` | | When user trigger toggle button, but not save yet
+`onExpired` | `(reason: string, state: CookieConsentLayerState) => void` | | Triggers only when cookie found and is expired (date/revision)
+`onError` | `(reason: string, message: string, state: CookieConsentLayerState) => void` | | When some errors occurred
 
 ## Api
-Option | Type | Default | Description
+Option | Type | Default value | Description
 --- | --- | --- | ---
-`getState` | `() => void` | | Returns component state
-`getPreferences` | `() => void` | | Returns preferences object
-`getOptions` | `() => void` | | Returns options object
-`getNodes` | `() => void` | | Returns defined nodes
-`getSelectors` | `() => void` | | Returns defined selectors
-`init` | `() => void` | | For re-initialize service (reset)
+`getState` | `() => CookieConsentLayerState` | | Returns component state
+`getPreferences` | `() => Preferences` | | Returns preferences object
+`getOptions` | `() => CookieConsentLayerOptions` | | Returns options object
+`getNodes` | `() => layerNodesType` | | Returns defined nodes
+`getSelectors` | `() => layerSelectorsType` | | Returns defined selectors
+`init` | `() => void` | | Re-initialize service (reset)
 `initButtonDomEvents` | `() => void` | | Initialize button DOM events
 `removeButtonDomEvents` | `() => void` | | Destroys button DOM events
 `initToggleDomEvents` | `() => void` | | Initialize category toggle DOM events
 `removeToggleDomEvents` | `() => void` | | Destroys category toggle DOM events
-`changeLanguage` | `(language?: string) => void` | | Change component language
-`changeLocales` | `(language?: string) => void` | | Change component locales and re-render
-`showBanner` | `(delay?: number) => void` | | Shows banner
+`changeLanguage` | `(language?: string) => void` | `state.language` | Change component language
+`changeLocales` | `(language?: string) => void` | `state.language` | Change component locales and re-render
+`showBanner` | `(delay?: number) => void` | `0` | Shows banner
 `hideBanner` | `() => void` | | Hides banner
 `destroyBanner` | `() => void` | | Removes banner from DOM
-`showDialog` | `(delay?: number) => void` | | Shows dialog
+`showDialog` | `(delay?: number) => void` | `0` | Shows dialog
 `hideDialog` | `() => void` | | Hides dialog
 `destroyDialog` | `() => void` | | Removes dialog from DOM
-`getCookie` | `(name?: string) => any` | | Returns defined cookie
-`destroyCookie` | `() => void` | | Destroys defined cookie
+`getCookie` | `(name?: string) => any` | `options.cookie.name` | Returns defined cookie
+`destroyCookie` | `(name?: string) => void` | `options.cookie.name` | Destroys defined cookie
+`addConsentCookie` | `(category: categoryNameType, cookies: consentCookieObjectType[]) => void` | | Add consent cookie item to category
+`removeConsentCookie` | `(category: categoryNameType, cookies: consentCookieObjectType[]) => void` | | Remove consent cookie from category
 
 
 

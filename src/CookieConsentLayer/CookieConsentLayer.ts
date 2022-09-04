@@ -12,7 +12,6 @@ import {
     createButtonElement,
 } from '../helpers';
 import {
-    DEFAULT_META_NAME,
     DEFAULT_STATE,
     DEFAULT_OPTIONS,
 } from './const';
@@ -32,6 +31,7 @@ import {
     layerSelectorsType,
     layerNodesType,
     layerEventsType,
+    consentCookieObjectType,
     Cookie,
     CookieData,
     CookieConsentLayerState,
@@ -203,6 +203,24 @@ class CookieConsentLayer {
             setCookie(name, parsedValue, expiration);
         },
         destroy: (name = this.options.cookie.name) => setCookie('', name, -1),
+    };
+    readonly consent = {
+        addCookie: (category: categoryNameType, cookies: consentCookieObjectType[]) => {
+            this.options.consent.cookies[category] = [ ...this.options.consent.cookies[category], ...cookies ];
+            this.renderCategoryTable();
+            if (cookies.length > 0) this.log(`## Consent cookie table '${category}' was updated`, this.options.consent.cookies[category]);
+        },
+        removeCookie: (category: categoryNameType, cookieNames: string[]) => {
+            const cookies = [ ...this.options.consent.cookies[category] ];
+            cookieNames.map((name) => {
+                const fc = cookies.find((cookie) => cookie.name === name);
+                const index = indexOf(cookies, fc)
+                if (index > -1) cookies.splice(index, 1);
+            });
+            this.options.consent.cookies[category] = cookies;
+            this.renderCategoryTable();
+            if (cookieNames.length > 0) this.log(`## Consent cookie table '${category}' was updated`, this.options.consent.cookies[category]);
+        },
     };
 
     constructor(
@@ -770,7 +788,7 @@ class CookieConsentLayer {
 
         // On init callback
         if (this.options.onInit && typeof this.options.onInit === 'function') {
-            this.options.onInit(this.state);
+            this.options.onInit(this.state, this.consent);
         }
 
         // Prepare available languages and set to state
@@ -828,10 +846,12 @@ class CookieConsentLayer {
                 destroyDialog: this.dialog.destroy.bind(this),
                 getCookie: this.cookies.get.bind(this),
                 destroyCookie: this.cookies.destroy.bind(this),
+                addConsentCookie: this.consent.addCookie.bind(this),
+                removeConsentCookie: this.consent.removeCookie.bind(this),
             };
             this.presenter();
             this.historyPush('init');
-            this.log(`## '${DEFAULT_META_NAME}' loaded in 'window.CookieConsentLayer'`, windowProps);
+            this.log(`## '${this.scope}' loaded in 'window.CookieConsentLayer'`, windowProps);
             window.CookieConsentLayer = windowProps;
 
             return windowProps;

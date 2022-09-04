@@ -49,7 +49,7 @@ export const DEFAULT_OPTIONS: CookieConsentLayerOptions = {
         delay: 0, // When set, banner will show after this value in ms
         classPrefix: 'ccl-', // Global class prefix used also in styles. Be sure you know, why changing this value
         hideFromBots: false, // If you want to hide service from bot/crawler/webdriver. If set to true and service detects one of bot, will be not initialized
-        ltr: true, // TODO: If you want to keep text right-to-left, set to false
+        ltr: true, // TODO
     },
     cookie: {
         name: DEFAULT_COOKIE_NAME, // Name of a cookie which be save in browser
@@ -74,14 +74,14 @@ export const DEFAULT_OPTIONS: CookieConsentLayerOptions = {
         cookies: {
             necessary: [
                 {
-                    name: 'CookieConsentScope',
+                    name: 'CookieConsentScope1',
                     domain: '.your-domain.some',
                     expiration: 365,
                     description: 'Cookie description',
                     regex: false,
                 },
                 {
-                    name: 'CookieConsentScope',
+                    name: 'CookieConsentScope2',
                     domain: '.your-domain.some',
                     expiration: 365,
                     description: 'Cookie description',

@@ -84,6 +84,11 @@ export type localesObjectType = {
     },
 };
 
+export type layerConsentType = {
+    addCookie: (category: categoryNameType, cookies: consentCookieObjectType[]) => void,
+    removeCookie: (category: categoryNameType, cookieNames: string[]) => void,
+};
+
 export interface Preferences {
     timestamp: number | null,
     event: string | null,
@@ -194,7 +199,7 @@ export interface CookieConsentLayerOptions {
     onAcceptAll: (cookie: Cookie, preferences: Preferences) => void,
     onAcceptNecessary: (cookie: Cookie, preferences: Preferences) => void,
     onChange: (cookie: Cookie, preferences: Preferences) => void,
-    onInit: (state: CookieConsentLayerState) => void,
+    onInit: (state: CookieConsentLayerState, consent: layerConsentType) => void,
     onToggle: (preferences: Preferences) => void,
     onExpired: (reason: string, state: CookieConsentLayerState) => void,
     onError: (reason: string, message: string, state: CookieConsentLayerState) => void,
@@ -221,6 +226,8 @@ export interface CookieConsentLayerProps {
     destroyDialog: Function,
     getCookie: Function,
     destroyCookie: Function,
+    addConsentCookie: Function,
+    removeConsentCookie: Function,
 }
 
 export interface constructorPropType {
