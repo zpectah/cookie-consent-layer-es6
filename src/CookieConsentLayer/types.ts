@@ -3,6 +3,7 @@ import {
     preferenceEventKeys,
     preferenceStateEventKeys,
     scriptsModeKeys,
+    defaultCategoryKeys,
 } from './enums';
 
 export type preferenceEventKeyTypes = keyof typeof preferenceEventKeys;
@@ -13,9 +14,9 @@ export type scriptsModeKeyTypes = keyof typeof scriptsModeKeys;
 
 export type bundleEnvironmentType = keyof typeof environmentTypeKeys | undefined;
 
-export type categoryNameType = string; // TODO
+export type categoryNameType = keyof typeof defaultCategoryKeys | string;
 
-export type languageKeyType = string; // TODO
+export type languageKeyType = string;
 
 export type uuidType = string | undefined;
 
@@ -28,6 +29,8 @@ export type commonElementType = Element & HTMLElement & {
 export type commonInputElementType = Element & HTMLElement & HTMLInputElement & {
     checked: string | boolean,
 } & any; // TODO
+
+export type commonScriptElementType = HTMLScriptElement | any;
 
 export type layerSelectorsType = {
     [k: string]: {
@@ -89,6 +92,13 @@ export type layerConsentType = {
     removeCookie: (category: categoryNameType, cookieNames: string[]) => void,
 };
 
+export type siteScriptObjectType = {
+    category: categoryNameType,
+    baseURI: string,
+    async: boolean,
+    src: string,
+};
+
 export interface Preferences {
     timestamp: number | null,
     event: string | null,
@@ -134,6 +144,9 @@ export interface CookieConsentLayerState {
         show: boolean,
         table: boolean,
         dirty: boolean,
+    },
+    scripts: {
+        site: siteScriptObjectType[],
     },
     language: string,
     languages: string[],

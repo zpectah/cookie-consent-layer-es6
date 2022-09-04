@@ -18,3 +18,10 @@ export enum scriptsModeKeys {
     'opt-out' = 'opt-out',
 }
 
+export enum defaultCategoryKeys {
+    necessary = 'necessary',
+    analytics = 'analytics',
+    marketing = 'marketing',
+    functional = 'functional',
+    personalization = 'personalization',
+}

@@ -24,6 +24,7 @@ import {
     commonElementNodeType,
     commonElementType,
     commonInputElementType,
+    commonScriptElementType,
     uuidType,
     preferenceStateKeyTypes,
     categoryNameType,
@@ -66,6 +67,7 @@ class CookieConsentLayer {
         DATA_CCL: 'data-ccl',
         DATA_CCL_TARGET: 'data-ccl-target',
         DATA_CCL_TOGGLE: 'data-ccl-toggle',
+        DATA_CCL_CATEGORY: 'data-ccl-category',
     };
     readonly banner = {
         init: () => {
@@ -164,8 +166,8 @@ class CookieConsentLayer {
             return `${_title}${_revision}${_content}`;
         },
         dialogBody: (title: string, primary: string, secondary: string | null, close: string) => {
-            const _close = `<button type="button" ${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}" class="${this.selectors.dialog.bodyCloseClassName}">${close}</button>`;
-            const _title = `<div class="${this.selectors.dialog.bodyTitleClassName}">${title}</div>`;
+            const _close = `<button type="button" ${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}" class="${this.selectors.dialog.bodyCloseClassName}" title='${close}'>X</button>`;
+            const _title = `<h3 class="${this.selectors.dialog.bodyTitleClassName}">${title}</h3>`;
             const _primary = `<div class="${this.selectors.dialog.bodyPrimaryClassName}">${primary}</div>`;
             const _secondary = secondary && `<div class="${this.selectors.dialog.bodySecondaryClassName}">${secondary}</div>`;
             const _table = `<div ${this.tokens.DATA_CCL_TARGET}="${this.tokens.CATEGORIES_TABLE_CCL}" class="${this.selectors.dialog.bodyTableClassName}">Loading table, please wait</div>`;
@@ -234,9 +236,9 @@ class CookieConsentLayer {
         this.uuid = uuid || getToken(6);
         this.selectors = {
             btn: {
-                acceptAllClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button-primary`,
-                acceptNecessaryClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button-secondary`,
-                saveChangesClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button-secondary`,
+                acceptAllClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button--primary`,
+                acceptNecessaryClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button--secondary`,
+                saveChangesClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button--secondary`,
             },
             banner: {
                 wrapperId: this.options.banner.id,
@@ -366,6 +368,31 @@ class CookieConsentLayer {
     /**
      * Scripts
      **/
+    browseSiteScripts() {
+        // const scriptsAll = document.getElementsByTagName('script');
+        const scriptsToken = document.querySelectorAll(`[${this.tokens.DATA_CCL_CATEGORY}]`);
+        const scripts: any[] = [];
+        scriptsToken.forEach((node: commonScriptElementType) => {
+            scripts.push({
+                category: node.dataset.cclCategory,
+                baseURI: node.baseURI,
+                async: node.async,
+                src: node.src,
+            });
+            if (this.options.scripts.autoload) node.remove();
+        });
+
+        /*
+
+        Other logic
+
+        */
+
+        this.state.scripts.site = [ ...scripts ];
+    }
+    appendSiteScripts() {
+        console.log('append to body these <script> tags', this.state.scripts.site);
+    }
     scriptsAutoloadController(event: string, data: any) {
         if (this.options.scripts.autoload) {
             // TODO: handle selected cookie category with loaded cookies ...
@@ -624,7 +651,7 @@ class CookieConsentLayer {
         };
         const getCategoryContent = (category: categoryNameType) => {
             const loc = locales.categories[category];
-            const _title = `<div class="${this.selectors.categoryRows.blockHeadingTitle}">${loc.title ? loc.title : `undefined`}</div>`;
+            const _title = `<h4 class="${this.selectors.categoryRows.blockHeadingTitle}">${loc.title ? loc.title : `undefined`}</h4>`;
             const _description = `<div class="${this.selectors.categoryRows.blockDescription}">${loc.description ? loc.description : `undefined`}</div>`;
             const _checkbox = `<div class="${this.selectors.categoryRows.blockHeadingToggle}">${getCategoryToggle(category)}</div>`;
             const _heading = `<div class="${this.selectors.categoryRows.blockHeading}">${_title}${_checkbox}</div>`;
@@ -662,9 +689,12 @@ class CookieConsentLayer {
     renderBannerElement() {
         const cookieData = this.cookies.getData();
         const locales = this.getLocales();
+        let wrapperClassName = `layout--${this.options.banner.layout}`;
+        wrapperClassName += ` position--${this.options.banner.position.replace(/\s/g, '-')}`;
+        wrapperClassName += ` transition--${this.options.banner.transition}`;
         const _wrapper = createElement({
             id: this.selectors.banner.wrapperId,
-            className: this.selectors.banner.wrapperClassName,
+            className: `${this.selectors.banner.wrapperClassName} ${wrapperClassName}`,
             arias: {
                 hidden: true,
             },
@@ -698,9 +728,12 @@ class CookieConsentLayer {
     }
     renderDialogElement() {
         const locales = this.getLocales();
+        let wrapperClassName = `layout--${this.options.dialog.layout}`;
+        wrapperClassName += ` position--${this.options.dialog.position}`;
+        wrapperClassName += ` transition--${this.options.dialog.transition}`;
         const _wrapper = createElement({
             id: this.selectors.dialog.wrapperId,
-            className: this.selectors.dialog.wrapperClassName,
+            className: `${this.selectors.dialog.wrapperClassName} ${wrapperClassName}`,
             arias: {
                 hidden: true,
             },
@@ -816,6 +849,8 @@ class CookieConsentLayer {
         this.dialog.init();
         this.presenterController(cookieData);
         this.initButtonDomEvents();
+
+        this.browseSiteScripts();
     }
 
     /**

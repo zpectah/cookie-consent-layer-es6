@@ -75,7 +75,7 @@ Option | Type | Default | Description
 `onAcceptAll` | `(cookie: Cookie, preferences: Preferences) => void` | | When user clicks on 'Accept all' button
 `onAcceptNecessary` | `(cookie: Cookie, preferences: Preferences) => void` | | When user clicks on 'Accept necessary' or 'Decline' button
 `onChange` | `(cookie: Cookie, preferences: Preferences) => void` | | When user click on 'Save' button in dialog
-`onInit` | `(state: CookieConsentLayerState) => void` | | Triggers only when cookie is found on page load
+`onInit` | `(state: CookieConsentLayerState, consent: layerConsentType) => void` | | Triggers only when cookie is found on page load
 `onToggle` | `(preferences: Preferences) => void` | | When user trigger toggle button, but not save yet
 `onExpired` | `(reason: string, state: CookieConsentLayerState) => void` | | Triggers only when cookie found and is expired (date/revision)
 `onError` | `(reason: string, message: string, state: CookieConsentLayerState) => void` | | When some errors occurred
