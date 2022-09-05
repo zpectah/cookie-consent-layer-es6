@@ -32,6 +32,7 @@ import {
     layerSelectorsType,
     layerNodesType,
     layerEventsType,
+    layerNodesEventsType,
     consentCookieObjectType,
     Cookie,
     CookieData,
@@ -52,6 +53,7 @@ class CookieConsentLayer {
     readonly selectors: layerSelectorsType;
     readonly nodes: layerNodesType;
     readonly events: layerEventsType;
+    readonly nodesEvents: layerNodesEventsType;
 
     readonly tokens = {
         BTN_ACCEPT_ALL_CCL: 'button_acceptAll',
@@ -235,6 +237,11 @@ class CookieConsentLayer {
         this.scope = scope || 'default';
         this.uuid = uuid || getToken(6);
         this.selectors = {
+            common: {
+                layoutClassPfx: 'layout--',
+                positionClassPfx: 'position--',
+                transitionClassPfx: 'transition--',
+            },
             btn: {
                 acceptAllClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button--primary`,
                 acceptNecessaryClassName: `${this.options.meta.classPrefix}button ${this.options.meta.classPrefix}button--secondary`,
@@ -281,18 +288,18 @@ class CookieConsentLayer {
                 blockHeadingTitle: `${this.options.meta.classPrefix}category-block-heading-title`,
                 blockDescription: `${this.options.meta.classPrefix}category-block-description`,
             },
-            state: {
+            stateClassName: {
                 isChecked: 'is-checked',
             },
         };
         this.nodes = {
-            showDialog: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SHOW_DIALOG_CCL}"]`),
-            hideDialog: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}"]`),
-            showBanner: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SHOW_BANNER_CCL}"]`),
-            hideBanner: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_BANNER_CCL}"]`),
-            acceptAll: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_ALL_CCL}"]`),
-            acceptNecessary: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_NECESSARY_CCL}"]`),
-            saveChanges: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SAVE_CCL}"]`),
+            showDialogButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SHOW_DIALOG_CCL}"]`),
+            hideDialogButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}"]`),
+            showBannerButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SHOW_BANNER_CCL}"]`),
+            hideBannerButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_BANNER_CCL}"]`),
+            acceptAllButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_ALL_CCL}"]`),
+            acceptNecessaryButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_NECESSARY_CCL}"]`),
+            saveChangesButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SAVE_CCL}"]`),
         };
         this.events = {
             showBanner: (e: Event) => {
@@ -327,6 +334,15 @@ class CookieConsentLayer {
                 e.preventDefault();
                 this.categoryToggleHandler(category, e);
             },
+        };
+        this.nodesEvents = {
+            showDialogButton: this.events.showDialog,
+            hideDialogButton: this.events.hideDialog,
+            showBannerButton: this.events.showBanner,
+            hideBannerButton: this.events.hideBanner,
+            acceptAllButton: this.events.acceptAll,
+            acceptNecessaryButton: this.events.acceptNecessary,
+            saveChangesButton: this.events.saveChanges,
         };
 
         this.init();
@@ -431,13 +447,13 @@ class CookieConsentLayer {
         const locales = this.getLocales(lang);
         const elBannerBodyHtml = document.getElementById(this.selectors.banner.bodyId);
         const elDialogBodyHtml = document.getElementById(this.selectors.dialog.bodyId);
-        this.nodes.acceptAll().forEach((node: commonElementType) => {
+        this.nodes.acceptAllButton().forEach((node: commonElementType) => {
             node.innerText = `${locales.common.buttonAcceptAll}`;
         });
-        this.nodes.acceptNecessary().forEach((node: commonElementType) => {
+        this.nodes.acceptNecessaryButton().forEach((node: commonElementType) => {
             node.innerText = `${locales.common.buttonAcceptNecessary}`;
         });
-        this.nodes.saveChanges().forEach((node: commonElementType) => {
+        this.nodes.saveChangesButton().forEach((node: commonElementType) => {
             node.innerText = `${locales.common.buttonSave}`;
         });
         if (elBannerBodyHtml) elBannerBodyHtml.innerHTML = this.layout.bannerBody(locales.banner.title, locales.banner.content, cookieData.isExpiredRevision ? locales.revisionAlert : undefined);
@@ -547,7 +563,7 @@ class CookieConsentLayer {
         if (event && event.target) {
             const checked = indexOf(accepted, category) > -1;
             event.target.checked = checked && 'checked';
-            event.target.classList.toggle(this.selectors.state.isChecked, checked);
+            event.target.classList.toggle(this.selectors.stateClassName.isChecked, checked);
         }
         this.state.categories.dirty = true;
         this.log('categoryToggleHandler', accepted, declined, changed);
@@ -561,7 +577,7 @@ class CookieConsentLayer {
             nodes.forEach((node: commonInputElementType) => {
                 const checked = indexOf(list, ctg) > -1;
                 node.checked = checked && 'checked';
-                node.classList.toggle(this.selectors.state.isChecked, checked);
+                node.classList.toggle(this.selectors.stateClassName.isChecked, checked);
             });
         });
     }
@@ -570,28 +586,19 @@ class CookieConsentLayer {
      * DOM events
      **/
     initButtonDomEvents() {
-        this.nodes.showDialog().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.showDialog) });
-        this.nodes.hideDialog().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.hideDialog) });
-        this.nodes.showBanner().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.showBanner) });
-        this.nodes.hideBanner().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.hideBanner) });
-        this.nodes.acceptAll().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.acceptAll) });
-        this.nodes.acceptNecessary().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.acceptNecessary) });
-        this.nodes.saveChanges().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.events.saveChanges) });
+        for (let key in this.nodesEvents) {
+            this.nodes[key]().forEach((node: commonElementNodeType) => { node.addEventListener('click', this.nodesEvents[key]) });
+        }
         this.log(`Button events initiated`);
     }
     removeButtonDomEvents() {
-        this.nodes.showDialog().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.showDialog) });
-        this.nodes.hideDialog().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.hideDialog) });
-        this.nodes.showBanner().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.showBanner) });
-        this.nodes.hideBanner().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.hideBanner) });
-        this.nodes.acceptAll().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.acceptAll) });
-        this.nodes.acceptNecessary().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.acceptNecessary) });
-        this.nodes.saveChanges().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.events.saveChanges) });
+        for (let key in this.nodesEvents) {
+            this.nodes[key]().forEach((node: commonElementNodeType) => { node.removeEventListener('click', this.nodesEvents[key]) });
+        }
         this.log(`Button events destroyed`);
     }
     initToggleDomEvents() {
-        const categories = this.options.consent.categories || [];
-        categories.map((category: categoryNameType) => {
+        this.options.consent.categories.map((category: categoryNameType) => {
             const key = `${this.tokens.CATEGORY_TOGGLE_PFX_CCL}${category}`;
             const nodes = document.querySelectorAll(`[${this.tokens.DATA_CCL_TOGGLE}="${key}"]`);
             nodes.forEach((node: commonInputElementType) => {
@@ -601,8 +608,7 @@ class CookieConsentLayer {
         this.log(`Categories toggle events initiated`);
     }
     removeToggleDomEvents() {
-        const categories = this.options.consent.categories || [];
-        categories.map((ctg) => {
+        this.options.consent.categories.map((ctg) => {
             const key = `${this.tokens.CATEGORY_TOGGLE_PFX_CCL}${ctg}`;
             const nodes = document.querySelectorAll(`[${this.tokens.DATA_CCL_TOGGLE}="${key}"]`);
             nodes.forEach((node: commonInputElementType) => {
@@ -689,12 +695,15 @@ class CookieConsentLayer {
     renderBannerElement() {
         const cookieData = this.cookies.getData();
         const locales = this.getLocales();
-        let wrapperClassName = `layout--${this.options.banner.layout}`;
-        wrapperClassName += ` position--${this.options.banner.position.replace(/\s/g, '-')}`;
-        wrapperClassName += ` transition--${this.options.banner.transition}`;
+        const wrapperClass = [
+          this.selectors.banner.wrapperClassName,
+            `${this.selectors.common.layoutClassPfx}${this.options.banner.layout}`,
+            `${this.selectors.common.positionClassPfx}${this.options.banner.position.replace(/\s/g, '-')}`,
+            `${this.selectors.common.transitionClassPfx}${this.options.banner.transition}`,
+        ];
         const _wrapper = createElement({
             id: this.selectors.banner.wrapperId,
-            className: `${this.selectors.banner.wrapperClassName} ${wrapperClassName}`,
+            className: wrapperClass.join(' '),
             arias: {
                 hidden: true,
             },
@@ -728,12 +737,15 @@ class CookieConsentLayer {
     }
     renderDialogElement() {
         const locales = this.getLocales();
-        let wrapperClassName = `layout--${this.options.dialog.layout}`;
-        wrapperClassName += ` position--${this.options.dialog.position}`;
-        wrapperClassName += ` transition--${this.options.dialog.transition}`;
+        const wrapperClass = [
+          this.selectors.dialog.wrapperClassName,
+            `${this.selectors.common.layoutClassPfx}${this.options.dialog.layout}`,
+            `${this.selectors.common.positionClassPfx}${this.options.dialog.position}`,
+            `${this.selectors.common.transitionClassPfx}${this.options.dialog.transition}`,
+        ];
         const _wrapper = createElement({
             id: this.selectors.dialog.wrapperId,
-            className: `${this.selectors.dialog.wrapperClassName} ${wrapperClassName}`,
+            className: wrapperClass.join(' '),
             arias: {
                 hidden: true,
             },

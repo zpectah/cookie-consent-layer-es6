@@ -46,6 +46,10 @@ export type layerEventsType = {
     [k: string]: any,
 };
 
+export type layerNodesEventsType = {
+    [k: string]: (this: HTMLElement, ev: MouseEvent) => any,
+};
+
 export type consentCookieObjectType = {
     name: string,
     domain: string,
