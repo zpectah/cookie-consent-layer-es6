@@ -70,12 +70,16 @@ class CookieConsentLayer {
         DATA_CCL_TARGET: 'data-ccl-target',
         DATA_CCL_TOGGLE: 'data-ccl-toggle',
         DATA_CCL_CATEGORY: 'data-ccl-category',
+        DATA_CCL_DROPDOWN_TARGET: 'data-ccl-dropdown-target',
+        DATA_CCL_DROPDOWN_TOGGLE: 'data-ccl-dropdown-toggle',
     };
     readonly banner = {
         init: () => {
+            const elem: commonElementType | null = document.getElementById(this.options.banner.id);
             if (!this.state.dialog.destroyed) {
+                if (elem) elem.remove();
                 this.renderBannerElement();
-                this.state.banner.render = true;
+                this.log(`## Banner was initialized & rendered`);
             } else {
                 this.err('banner', 'Banner has been removed from DOM, try reload page');
             }
@@ -110,14 +114,17 @@ class CookieConsentLayer {
                 this.state.banner.render = false;
                 this.state.banner.show = false;
                 this.state.banner.destroyed = true;
+                this.log(`## Banner was destroyed`);
             }
         },
     };
     readonly dialog = {
         init: () => {
+            const elem: commonElementType | null = document.getElementById(this.options.dialog.id);
             if (!this.state.dialog.destroyed) {
+                if (elem) elem.remove();
                 this.renderDialogElement();
-                this.state.dialog.render = true;
+                this.log(`## Banner was initialized & rendered`);
             } else {
                 this.err('dialog', 'Dialog has been removed from DOM, try reload page');
             }
@@ -151,36 +158,13 @@ class CookieConsentLayer {
             if (elem) {
                 elem.remove();
                 this.state.categories.dirty = false;
-                this.state.categories.show = false;
+                this.state.categories.render = false;
                 this.state.categories.table = false;
                 this.state.dialog.render = false;
                 this.state.dialog.show = false;
                 this.state.dialog.destroyed = true;
+                this.log(`## Dialog and categories was destroyed`);
             }
-        },
-    };
-    readonly layout = {
-        bannerBody: (title: string, content: string, revision?: string) => {
-            const _title = `<div class="${this.selectors.banner.bodyTitleClassName}">${title}</div>`;
-            const _content = `<div class="${this.selectors.banner.bodyContentClassName}">${content}</div>`;
-            const _revision = revision && `<div id="${this.tokens.REVISION_ALERT_CCL}" class="${this.selectors.banner.bodyRevisionClassName}">${revision}</div>`;
-
-            return `${_title}${_revision}${_content}`;
-        },
-        dialogBody: (title: string, primary: string, secondary: string | null, close: string) => {
-            const _close = `<button type="button" ${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}" class="${this.selectors.dialog.bodyCloseClassName}" title='${close}'>X</button>`;
-            const _title = `<h3 class="${this.selectors.dialog.bodyTitleClassName}">${title}</h3>`;
-            const _primary = `<div class="${this.selectors.dialog.bodyPrimaryClassName}">${primary}</div>`;
-            const _secondary = secondary && `<div class="${this.selectors.dialog.bodySecondaryClassName}">${secondary}</div>`;
-            const _table = `<div ${this.tokens.DATA_CCL_TARGET}="${this.tokens.CATEGORIES_TABLE_CCL}" class="${this.selectors.dialog.bodyTableClassName}">Loading table, please wait</div>`;
-
-            return `${_close}${_title}${_primary}${_table}${_secondary}`;
-        },
-        categoryBody: () => {
-            // TODO
-        },
-        tableBody: () => {
-            // TODO
         },
     };
     readonly cookies = {
@@ -224,6 +208,24 @@ class CookieConsentLayer {
             this.options.consent.cookies[category] = cookies;
             this.renderCategoryTable();
             if (cookieNames.length > 0) this.log(`## Consent cookie table '${category}' was updated`, this.options.consent.cookies[category]);
+        },
+    };
+    readonly layout = {
+        bannerBody: (title: string, content: string, revision?: string) => {
+            const _title = `<div class="${this.selectors.banner.bodyTitleClassName}">${title}</div>`;
+            const _content = `<div class="${this.selectors.banner.bodyContentClassName}">${content}</div>`;
+            const _revision = revision ? `<div id="${this.tokens.REVISION_ALERT_CCL}" class="${this.selectors.banner.bodyRevisionClassName}">${revision}</div>` : '';
+
+            return `${_title}${_revision}${_content}`;
+        },
+        dialogBody: (title: string, primary: string, secondary: string | null, close: string) => {
+            const _close = `<button type="button" ${this.tokens.DATA_CCL}="${this.tokens.BTN_HIDE_DIALOG_CCL}" class="${this.selectors.dialog.bodyCloseClassName}" title='${close}'>X</button>`;
+            const _title = `<h3 class="${this.selectors.dialog.bodyTitleClassName}">${title}</h3>`;
+            const _primary = `<div class="${this.selectors.dialog.bodyPrimaryClassName}">${primary}</div>`;
+            const _secondary = secondary && `<div class="${this.selectors.dialog.bodySecondaryClassName}">${secondary}</div>`;
+            const _table = `<div ${this.tokens.DATA_CCL_TARGET}="${this.tokens.CATEGORIES_TABLE_CCL}" class="${this.selectors.dialog.bodyTableClassName}">Loading table, please wait</div>`;
+
+            return `${_close}${_title}${_primary}${_table}${_secondary}`;
         },
     };
 
@@ -285,11 +287,17 @@ class CookieConsentLayer {
                 blockHeadingToggle: `${this.options.meta.classPrefix}category-block-heading-toggle`,
                 blockTable: `${this.options.meta.classPrefix}category-block-table`,
                 blockCollapsible: `${this.options.meta.classPrefix}category-block-collapsible`,
-                blockHeadingTitle: `${this.options.meta.classPrefix}category-block-heading-title`,
+                blockHeadingBlock: `${this.options.meta.classPrefix}category-block-heading-block`,
+                blockHeadingBlockToggle: `${this.options.meta.classPrefix}category-block-heading-block-toggle`,
+                blockHeadingBlockTitle: `${this.options.meta.classPrefix}category-block-heading-block-title`,
                 blockDescription: `${this.options.meta.classPrefix}category-block-description`,
             },
             stateClassName: {
-                isChecked: 'is-checked',
+                // isVisible: 'is--visible',
+                // isHidden: 'is--hidden',
+                isChecked: 'is--checked',
+                isCollapsed: 'is--collapsed',
+                isExpanded: 'is--expanded',
             },
         };
         this.nodes = {
@@ -300,6 +308,7 @@ class CookieConsentLayer {
             acceptAllButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_ALL_CCL}"]`),
             acceptNecessaryButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_ACCEPT_NECESSARY_CCL}"]`),
             saveChangesButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL}="${this.tokens.BTN_SAVE_CCL}"]`),
+            dropdownButton: () => document.querySelectorAll(`[${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}]`),
         };
         this.events = {
             showBanner: (e: Event) => {
@@ -333,6 +342,11 @@ class CookieConsentLayer {
             toggleCategory: (e: Event, category: categoryNameType) => {
                 e.preventDefault();
                 this.categoryToggleHandler(category, e);
+            },
+            toggleDropdown: (e: Event, dropdownElement: Element) => {
+                e.preventDefault();
+                (e.target as HTMLButtonElement).classList.toggle(`${this.selectors.stateClassName.isExpanded}`);
+                dropdownElement.classList.toggle(`${this.selectors.stateClassName.isCollapsed}`);
             },
         };
         this.nodesEvents = {
@@ -541,7 +555,7 @@ class CookieConsentLayer {
     /**
      * Category toggle callback
      **/
-    categoryToggleHandler(category: categoryNameType, event?: any) {
+    categoryToggleHandler(category: categoryNameType, event?: Event) {
         const categories = this.options.consent.categories || [];
         const accepted = this.state.preferences.accepted ? cloneDeep(this.state.preferences.accepted) : [];
         let declined, changed;
@@ -562,8 +576,8 @@ class CookieConsentLayer {
         }
         if (event && event.target) {
             const checked = indexOf(accepted, category) > -1;
-            event.target.checked = checked && 'checked';
-            event.target.classList.toggle(this.selectors.stateClassName.isChecked, checked);
+            (event.target as HTMLInputElement).checked = checked;
+            (event.target as HTMLInputElement).classList.toggle(this.selectors.stateClassName.isChecked, checked);
         }
         this.state.categories.dirty = true;
         this.log('categoryToggleHandler', accepted, declined, changed);
@@ -617,6 +631,20 @@ class CookieConsentLayer {
         });
         this.log(`Categories toggle events destroyed`);
     }
+    initDropdownDomEvents() {
+        this.nodes.dropdownButton().forEach((node: commonScriptElementType) => {
+            const category = node.dataset.cclDropdownToggle;
+            const dropdown = category && document.querySelector(`[${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}"]`);
+            dropdown && node.addEventListener('click', (e: Event) => this.events.toggleDropdown(e, dropdown));
+        });
+    }
+    removeDropdownDomEvents() {
+        this.nodes.dropdownButton().forEach((node: commonScriptElementType) => {
+            const category = node.dataset.cclDropdownToggle;
+            const dropdown = category && document.querySelector(`[${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}"]`);
+            dropdown && node.removeEventListener('click', (e: Event) => this.events.toggleDropdown(e, dropdown));
+        });
+    }
 
     /**
      * Renderers
@@ -635,19 +663,19 @@ class CookieConsentLayer {
         };
         const getCategoryTableContent = (category: categoryNameType) => {
             const list = this.options.consent.cookies[category] || [];
+            const headingCols = [ locales.table.colName, locales.table.colDomain, locales.table.colExpiration, locales.table.colDescription ];
             let _heading = `<thead><tr>`;
-            _heading += `<th>${locales.table.colName}</th>`;
-            _heading += `<th>${locales.table.colDomain}</th>`;
-            _heading += `<th>${locales.table.colExpiration}</th>`;
-            _heading += `<th>${locales.table.colDescription}</th>`;
+            headingCols.map((col) => {
+                _heading += `<th>${col}</th>`;
+            });
             _heading += `</tr></thead>`;
             let _body = `<tbody>`;
             list.map((row) => {
+                const bodyCols = [ row.name, row.domain, row.expiration, row.description ];
                 _body += `<tr>`;
-                _body += `<th>${row.name}</th>`;
-                _body += `<td>${row.domain}</td>`;
-                _body += `<td>${row.expiration}</td>`;
-                _body += `<td>${row.description}</td>`;
+                bodyCols.map((col) => {
+                    _body += `<th>${col}</th>`;
+                });
                 _body += `</tr>`;
             });
             _body += `</tbody>`;
@@ -657,16 +685,17 @@ class CookieConsentLayer {
         };
         const getCategoryContent = (category: categoryNameType) => {
             const loc = locales.categories[category];
-            const _title = `<h4 class="${this.selectors.categoryRows.blockHeadingTitle}">${loc.title ? loc.title : `undefined`}</h4>`;
+            const _dropdownToggle = `<button type="button" class="${this.selectors.categoryRows.blockHeadingBlockTitle}" ${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}="${category}">toggle</button>`;
+            const _headingBlockTitle = `<h4 class="${this.selectors.categoryRows.blockHeadingBlockTitle}">${loc.title ? loc.title : `undefined`}</h4>`;
+            const _headingBlock = `<div class="${this.selectors.categoryRows.blockHeadingBlock}">${this.options.consent.expandableCategory ? _dropdownToggle : ''}${_headingBlockTitle}</div>`;
             const _description = `<div class="${this.selectors.categoryRows.blockDescription}">${loc.description ? loc.description : `undefined`}</div>`;
             const _checkbox = `<div class="${this.selectors.categoryRows.blockHeadingToggle}">${getCategoryToggle(category)}</div>`;
-            const _heading = `<div class="${this.selectors.categoryRows.blockHeading}">${_title}${_checkbox}</div>`;
+            const _heading = `<div class="${this.selectors.categoryRows.blockHeading}">${_headingBlock}${_checkbox}</div>`;
             const _table = showTable && `<div class="${this.selectors.categoryRows.blockTable}"><table class="${this.selectors.categoryRows.categoryTableClassName}">${getCategoryTableContent(category)}</table></div>`;
-            const _collapsible = `<div class="${this.selectors.categoryRows.blockCollapsible}">${_description}${_table}</div>`;
+            const _collapsible = `<div class="${this.selectors.categoryRows.blockCollapsible} ${this.options.consent.expandableCategory ? '' : this.selectors.stateClassName.isCollapsed}" ${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}" aria-expanded="false">${_description}${_table}</div>`;
 
             return `<div class="${this.selectors.categoryRows.block}">${_heading}${_collapsible}</div>`;
         };
-
         const _category = createElement({
             className: this.selectors.categoryRows.categoryOuterClassName,
         });
@@ -682,7 +711,7 @@ class CookieConsentLayer {
             _category.appendChild(_content);
         });
         if (targets) {
-            this.state.categories.show = true;
+            this.state.categories.render = true;
             this.state.categories.table = showTable;
             targets.forEach((node: Element) => {
                 node.innerHTML = ``; // Clear before append to prevent content duplicities
@@ -690,6 +719,7 @@ class CookieConsentLayer {
             })
         }
         this.initToggleDomEvents();
+        this.initDropdownDomEvents();
         this.adjustCategoryToggle();
     }
     renderBannerElement() {
@@ -734,6 +764,7 @@ class CookieConsentLayer {
         _wrapper.appendChild(_body);
         _wrapper.appendChild(_actions);
         document.body.appendChild(_wrapper);
+        this.state.banner.render = true;
     }
     renderDialogElement() {
         const locales = this.getLocales();
@@ -782,7 +813,9 @@ class CookieConsentLayer {
         _actions.appendChild(_btnSave);
         _wrapper.appendChild(_body);
         _wrapper.appendChild(_actions);
+        if (document.getElementById(this.selectors.dialog.id)) this.dialog.destroy();
         document.body.appendChild(_wrapper);
+        this.state.dialog.render = true;
         this.options.consent.showCategory && this.renderCategoryTable(this.options.consent.showCategoryTable);
     }
 
@@ -790,6 +823,12 @@ class CookieConsentLayer {
      * Presenters
      **/
     presenterController(cookieData: CookieData) {
+
+        // Prepare default language
+        if (this.options.language) {
+            this.state.language = this.options.language;
+        }
+
         if (cookieData.current) {
             this.log('Cookie was found:', cookieData);
 
@@ -836,7 +875,7 @@ class CookieConsentLayer {
             this.options.onInit(this.state, this.consent);
         }
 
-        // Prepare available languages and set to state
+        // Browse locales object and set as language list
         if (this.options.locales) {
             this.state.languages = [];
             for (const lang in this.options.locales) {
@@ -861,7 +900,7 @@ class CookieConsentLayer {
         this.dialog.init();
         this.presenterController(cookieData);
         this.initButtonDomEvents();
-
+        //
         this.browseSiteScripts();
     }
 
@@ -883,6 +922,8 @@ class CookieConsentLayer {
                 removeButtonDomEvents: this.removeButtonDomEvents.bind(this),
                 initToggleDomEvents: this.initToggleDomEvents.bind(this),
                 removeToggleDomEvents: this.removeToggleDomEvents.bind(this),
+                initDropdownDomEvents: this.initDropdownDomEvents.bind(this),
+                removeDropdownDomEvents: this.removeDropdownDomEvents.bind(this),
                 changeLanguage: this.changeLanguage.bind(this),
                 changeLocales: this.setLocalesContent.bind(this),
                 showBanner: this.banner.show.bind(this),

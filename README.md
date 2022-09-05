@@ -88,11 +88,13 @@ Option | Type | Default value | Description
 `getOptions` | `() => CookieConsentLayerOptions` | | Returns options object
 `getNodes` | `() => layerNodesType` | | Returns defined nodes
 `getSelectors` | `() => layerSelectorsType` | | Returns defined selectors
-`init` | `() => void` | | Re-initialize service (reset)
+`init` | `() => CookieConsentLayerProps` | | Re-initialize service (reset), returns layer properties
 `initButtonDomEvents` | `() => void` | | Initialize button DOM events
 `removeButtonDomEvents` | `() => void` | | Destroys button DOM events
 `initToggleDomEvents` | `() => void` | | Initialize category toggle DOM events
 `removeToggleDomEvents` | `() => void` | | Destroys category toggle DOM events
+`initDropdownDomEvents` | `() => void` | | Initialize category dropdown DOM events
+`removeDropdownDomEvents` | `() => void` | | Destroys category dropdown DOM events
 `changeLanguage` | `(language?: string) => void` | `state.language` | Change component language
 `changeLocales` | `(language?: string) => void` | `state.language` | Change component locales and re-render
 `showBanner` | `(delay?: number) => void` | `0` | Shows banner

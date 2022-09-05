@@ -2,14 +2,15 @@
   "name": "cookie-consent-layer-es6",
   "version": "1.0.0",
   "description": "Customizable cookie consent banner and dialog for modern browsers",
-  "main": "index.js",
+  "main": "dist/index.min.js",
   "author": "Tomas Sychra | zpecter.com",
   "license": "MIT",
   "repository": "https://github.com/zpectah/cookie-consent-layer-es6",
   "scripts": {
     "start": "webpack --env env=development --env watch",
-    "dev": "webpack --env env=development",
-    "build": "webpack --env env=production && rm -rf ./dist/*.LICENSE.txt"
+    "build:dev": "webpack --env env=development",
+    "build:prod": "webpack --env env=production",
+    "build": "webpack --env env=development && webpack --env env=production && rm -rf ./dist/*.LICENSE.txt"
   },
   "dependencies": {
     "lodash": "^4.17.21"

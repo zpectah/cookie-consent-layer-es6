@@ -145,7 +145,7 @@ export interface CookieConsentLayerState {
         destroyed: boolean,
     },
     categories: {
-        show: boolean,
+        render: boolean,
         table: boolean,
         dirty: boolean,
     },
@@ -187,6 +187,7 @@ export interface CookieConsentLayerOptions {
         staticCategories: categoryNameType[],
         showCategory: boolean,
         showCategoryTable: boolean,
+        expandableCategory: boolean,
         autoClearCookies: boolean,
         cookies: {
             [ k: categoryNameType ]: consentCookieObjectType[],
@@ -233,6 +234,8 @@ export interface CookieConsentLayerProps {
     removeButtonDomEvents: Function,
     initToggleDomEvents: Function,
     removeToggleDomEvents: Function,
+    initDropdownDomEvents: Function,
+    removeDropdownDomEvents: Function,
     changeLanguage: Function,
     changeLocales: Function,
     showBanner: Function,
