@@ -343,10 +343,9 @@ class CookieConsentLayer {
                 e.preventDefault();
                 this.categoryToggleHandler(category, e);
             },
-            toggleDropdown: (e: Event, dropdownElement: Element) => {
+            toggleDropdown: (e: Event, category: categoryNameType) => {
                 e.preventDefault();
-                (e.target as HTMLButtonElement).classList.toggle(`${this.selectors.stateClassName.isExpanded}`);
-                dropdownElement.classList.toggle(`${this.selectors.stateClassName.isCollapsed}`);
+                this.categoryDropdownToggleHandler(category, e);
             },
         };
         this.nodesEvents = {
@@ -555,6 +554,17 @@ class CookieConsentLayer {
     /**
      * Category toggle callback
      **/
+    categoryDropdownToggleHandler(category: categoryNameType, event: Event) {
+        const isCategoryCollapsed = (event.target as HTMLInputElement).classList.contains(this.selectors.stateClassName.isExpanded);
+        const buttons = document.querySelectorAll(`[${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}="${category}"]`);
+        const dropdown = document.querySelectorAll(`[${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}"]`);
+        this.options.consent.expandableCategory && buttons.forEach((node) => {
+            node.classList.toggle(this.selectors.stateClassName.isExpanded, !isCategoryCollapsed);
+        });
+        this.options.consent.expandableCategory && dropdown.forEach((node) => {
+            node.classList.toggle(this.selectors.stateClassName.isCollapsed, !isCategoryCollapsed);
+        });
+    }
     categoryToggleHandler(category: categoryNameType, event?: Event) {
         const categories = this.options.consent.categories || [];
         const accepted = this.state.preferences.accepted ? cloneDeep(this.state.preferences.accepted) : [];
@@ -633,16 +643,12 @@ class CookieConsentLayer {
     }
     initDropdownDomEvents() {
         this.nodes.dropdownButton().forEach((node: commonScriptElementType) => {
-            const category = node.dataset.cclDropdownToggle;
-            const dropdown = category && document.querySelector(`[${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}"]`);
-            dropdown && node.addEventListener('click', (e: Event) => this.events.toggleDropdown(e, dropdown));
+            node.addEventListener('click', (e: Event) => this.events.toggleDropdown(e, node.dataset.cclDropdownToggle));
         });
     }
     removeDropdownDomEvents() {
         this.nodes.dropdownButton().forEach((node: commonScriptElementType) => {
-            const category = node.dataset.cclDropdownToggle;
-            const dropdown = category && document.querySelector(`[${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}"]`);
-            dropdown && node.removeEventListener('click', (e: Event) => this.events.toggleDropdown(e, dropdown));
+            node.removeEventListener('click', (e: Event) => this.events.toggleDropdown(e, node.dataset.cclDropdownToggle));
         });
     }
 
@@ -685,14 +691,17 @@ class CookieConsentLayer {
         };
         const getCategoryContent = (category: categoryNameType) => {
             const loc = locales.categories[category];
-            const _dropdownToggle = `<button type="button" class="${this.selectors.categoryRows.blockHeadingBlockTitle}" ${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}="${category}">toggle</button>`;
-            const _headingBlockTitle = `<h4 class="${this.selectors.categoryRows.blockHeadingBlockTitle}">${loc.title ? loc.title : `undefined`}</h4>`;
+            const expanded = this.options.consent.expandedCategory === 'all' || (indexOf(this.options.consent.expandedCategory, category) > -1);
+            const toggleClassName = expanded ? this.selectors.stateClassName.isExpanded : '';
+            const dropdownClassName = (!this.options.consent.expandableCategory || expanded) ? this.selectors.stateClassName.isCollapsed : '';
+            const _dropdownToggle = `<button type="button" class="${this.selectors.categoryRows.blockHeadingBlockTitle} ${toggleClassName}" ${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}="${category}">toggle</button>`;
+            const _headingBlockTitle = `<h4 class="${this.selectors.categoryRows.blockHeadingBlockTitle} ${toggleClassName}" ${this.tokens.DATA_CCL_DROPDOWN_TOGGLE}="${category}">${loc.title ? loc.title : `undefined`}</h4>`;
             const _headingBlock = `<div class="${this.selectors.categoryRows.blockHeadingBlock}">${this.options.consent.expandableCategory ? _dropdownToggle : ''}${_headingBlockTitle}</div>`;
             const _description = `<div class="${this.selectors.categoryRows.blockDescription}">${loc.description ? loc.description : `undefined`}</div>`;
             const _checkbox = `<div class="${this.selectors.categoryRows.blockHeadingToggle}">${getCategoryToggle(category)}</div>`;
             const _heading = `<div class="${this.selectors.categoryRows.blockHeading}">${_headingBlock}${_checkbox}</div>`;
             const _table = showTable && `<div class="${this.selectors.categoryRows.blockTable}"><table class="${this.selectors.categoryRows.categoryTableClassName}">${getCategoryTableContent(category)}</table></div>`;
-            const _collapsible = `<div class="${this.selectors.categoryRows.blockCollapsible} ${this.options.consent.expandableCategory ? '' : this.selectors.stateClassName.isCollapsed}" ${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}" aria-expanded="false">${_description}${_table}</div>`;
+            const _collapsible = `<div class="${this.selectors.categoryRows.blockCollapsible} ${dropdownClassName}" ${this.tokens.DATA_CCL_DROPDOWN_TARGET}="${category}" aria-expanded="${String(expanded)}">${_description}${_table}</div>`;
 
             return `<div class="${this.selectors.categoryRows.block}">${_heading}${_collapsible}</div>`;
         };
@@ -711,10 +720,10 @@ class CookieConsentLayer {
             _category.appendChild(_content);
         });
         if (targets) {
-            this.state.categories.render = true;
+            this.state.categories.render = targets.length > 0;
             this.state.categories.table = showTable;
             targets.forEach((node: Element) => {
-                node.innerHTML = ``; // Clear before append to prevent content duplicities
+                node.innerHTML = ``;
                 node.appendChild(_category);
             })
         }
@@ -763,8 +772,7 @@ class CookieConsentLayer {
         _actions.appendChild(_btnAcceptNecessary);
         _wrapper.appendChild(_body);
         _wrapper.appendChild(_actions);
-        document.body.appendChild(_wrapper);
-        this.state.banner.render = true;
+        this.state.banner.render = !!document.body.appendChild(_wrapper);
     }
     renderDialogElement() {
         const locales = this.getLocales();
@@ -814,8 +822,7 @@ class CookieConsentLayer {
         _wrapper.appendChild(_body);
         _wrapper.appendChild(_actions);
         if (document.getElementById(this.selectors.dialog.id)) this.dialog.destroy();
-        document.body.appendChild(_wrapper);
-        this.state.dialog.render = true;
+        this.state.dialog.render = !!document.body.appendChild(_wrapper);
         this.options.consent.showCategory && this.renderCategoryTable(this.options.consent.showCategoryTable);
     }
 

@@ -74,6 +74,7 @@ export const DEFAULT_OPTIONS: CookieConsentLayerOptions = {
         showCategory: true, // If set to true category article will be rendered
         showCategoryTable: true, // If set to true cookie tables is rendered in category
         expandableCategory: true,
+        expandedCategory: 'all', // [ 'necessary' ] or 'all'
         autoClearCookies: false, // TODO: If you want to remove cookies from browser which is not selected
         cookies: {
             necessary: [

@@ -188,6 +188,7 @@ export interface CookieConsentLayerOptions {
         showCategory: boolean,
         showCategoryTable: boolean,
         expandableCategory: boolean,
+        expandedCategory: categoryNameType[] | 'all',
         autoClearCookies: boolean,
         cookies: {
             [ k: categoryNameType ]: consentCookieObjectType[],
